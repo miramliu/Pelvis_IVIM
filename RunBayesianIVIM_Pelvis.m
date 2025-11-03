@@ -1,4 +1,4 @@
-% will run IVIM with bayesian algorithm assuming the folder was sorted by "SortIVIM_Pelvis.m"
+% will run IVIM with bayesian algorithm assuming the folder was sorted by "SortIVIM_Pelvis.m" - Mira Liu Nov 2025
 % input folder of interest and name 
 function  RunBayesianIVIM_Pelvis(varargin)
     DIR = fullfile(varargin{1},varargin{2});
@@ -194,23 +194,24 @@ function  RunBayesianIVIM_Pelvis(varargin)
                 % for normal b values
                     SignalInput = squeeze(double(Images_T(1:Num_Bvalues,i,j)/Images_T(1,i,j))); 
         
-                    % Bayesian
+                    % Bayesian %% you can also comment out the Bayesian fit with %{ in line 198 if you want ONLY the segmented fit.
+                    
                     Output = BayesianIVIM_Pelvis(Bvalues,SignalInput);
                     f_map(i,j,1)=Output.f;
                     D_map(i,j,1)=Output.D;
                     Dstar_map(i,j,1)=Output.Ds;
                     Adjrsq_map(i,j,1)=Output.adj_rsq;
-    
+                    %}
                     
-                    % Two-step
+                    % Two-step 
+                    %% in line 207 below, put %{ to comment out the following block of code meaning it won't be run. Instead now they will all remain zeros.
                     
                     Output = Segmented_Fit_Pelvis(Bvalues, SignalInput);
-                    f_map_2step(i,j,1)=Output.f;
+                    f_map_2step(i,j,1)=Output.f; %% 
                     D_map_2step(i,j,1)=Output.D;
                     Dstar_map_2step(i,j,1)=Output.Ds;
                     Adjrsq_map_2step(i,j,1)=Output.adj_rsq;
-                    %}
-    
+                    %} 
                 end
             end
         end
@@ -374,25 +375,34 @@ function Output = Segmented_Fit_Pelvis(bvalues, signal,bval_cutoff_idx)
     %generate D map
     %plot(bvalues(1:N_bvalues),signal/signal(1))
     %ylim([0,1])
-    [mono_fitresult, ~] = fit(bvalues(bval_cutoff_idx:N_bvalues),vec(bval_cutoff_idx:N_bvalues),'poly1');
-    
-    D_fit = -mono_fitresult.p1;
-    f_fit = 1-exp(mono_fitresult.p2); % as  ln(Ae^-bx) = ln(a) - bx.
-
-
-
-    %generate D* and f map
-    ft_bi = fittype('(1-f)*exp(-x*D)+f*exp(-x*(Dstar))','dependent',{'y'},'independent',{'x'},'problem',{'D', 'f'},'coefficients',{'Dstar'});
-    fo_bi = 0.005; %startpoints, in alphabetical order, so D, Dstar, f. 
-
     try
-        [fitmod_bi,good_bi,~]=fit(bvalues,signal(:)/signal(1),ft_bi,'startpoint',fo_bi, 'upper',0.1, 'problem', {D_fit, f_fit}); %no longer in log space
-        Output.D=D_fit;
-        Output.Ds=fitmod_bi.Dstar;
-        Output.f = f_fit;
-        Output.SSE = good_bi.sse;
-        Output.rsq = good_bi.rsquare;
-        Output.adj_rsq = good_bi.adjrsquare;
+        [mono_fitresult, ~] = fit(bvalues(bval_cutoff_idx:N_bvalues),vec(bval_cutoff_idx:N_bvalues),'poly1');
+        
+        D_fit = -mono_fitresult.p1;
+        f_fit = 1-exp(mono_fitresult.p2); % as  ln(Ae^-bx) = ln(a) - bx.
+    
+    
+    
+        %generate D* and f map
+        ft_bi = fittype('(1-f)*exp(-x*D)+f*exp(-x*(Dstar))','dependent',{'y'},'independent',{'x'},'problem',{'D', 'f'},'coefficients',{'Dstar'});
+        fo_bi = 0.005; %startpoints, in alphabetical order, so D, Dstar, f. 
+    
+        try
+            [fitmod_bi,good_bi,~]=fit(bvalues,signal(:)/signal(1),ft_bi,'startpoint',fo_bi, 'upper',0.1, 'problem', {D_fit, f_fit}); %no longer in log space
+            Output.D=D_fit;
+            Output.Ds=fitmod_bi.Dstar;
+            Output.f = f_fit;
+            Output.SSE = good_bi.sse;
+            Output.rsq = good_bi.rsquare;
+            Output.adj_rsq = good_bi.adjrsquare;
+        catch
+            Output.D=0;
+            Output.Ds=0;
+            Output.f = 0;
+            Output.SSE = NaN;
+            Output.rsq = NaN;
+            Output.adj_rsq = NaN;
+        end
     catch
         Output.D=0;
         Output.Ds=0;
@@ -401,6 +411,5 @@ function Output = Segmented_Fit_Pelvis(bvalues, signal,bval_cutoff_idx)
         Output.rsq = NaN;
         Output.adj_rsq = NaN;
     end
-
 
 end

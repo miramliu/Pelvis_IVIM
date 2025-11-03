@@ -186,7 +186,6 @@ function  RunBayesianIVIM_Pelvis(varargin)
         Dstar_map_2step=zeros(nx,ny,1);
         Adjrsq_map_2step=zeros(nx,ny,1);
     
-        
         disp(' Fitting...');      
         for i=1:nx
             for j=1:ny

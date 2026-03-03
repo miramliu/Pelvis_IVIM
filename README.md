@@ -27,3 +27,7 @@ Any questions, please reach out to Mira Liu (mirabai.liu@mountsinai.org).
 The code is run in MATLAB R2024b.
 
 Mira 11/6/2025
+
+## Updated with added autobinning pipeline from Jared Sealy!
+
+Mira 3/3/2026

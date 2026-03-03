@@ -29,5 +29,6 @@ The code is run in MATLAB R2024b.
 Mira 11/6/2025
 
 ## Updated with added autobinning pipeline from Jared Sealy!
+The dicom export to MIM was adjusted so that b0 was not sorted out separately. Now this can be used for more recent exports that do not have a separate section with b0 alone
 
 Mira 3/3/2026
